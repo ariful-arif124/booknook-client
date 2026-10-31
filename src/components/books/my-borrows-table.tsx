@@ -9,13 +9,14 @@ import {
   ArrowUpRight,
   BookOpen,
   CalendarDays,
+  CheckCircle2,
   Clock3,
   LibraryBig,
-  RotateCcw,
   Search,
   X,
 } from "lucide-react";
 
+import ReturnBookModal from "@/components/books/return-book-modal";
 import type { Borrow } from "@/data/borrows";
 
 type Props = {
@@ -40,14 +41,26 @@ const months = [
 function formatDate(date: string) {
   const [year, month, day] = date.split("-").map(Number);
 
-  if (!year || !month || !day || month > 12) {
+  if (
+    !year ||
+    !month ||
+    !day ||
+    month > 12 ||
+    month < 1 ||
+    day < 1 ||
+    day > 31
+  ) {
     return date;
   }
 
   return `${months[month - 1]} ${day}, ${year}`;
 }
 
-function BorrowedBookCover({ borrow }: { borrow: Borrow }) {
+function BorrowedBookCover({
+  borrow,
+}: {
+  borrow: Borrow;
+}) {
   const [imageError, setImageError] = useState(false);
 
   return (
@@ -73,10 +86,18 @@ function BorrowedBookCover({ borrow }: { borrow: Borrow }) {
   );
 }
 
-export default function MyBorrowsTable({ borrows }: Props) {
-  const [search, setSearch] = useState("");
+export default function MyBorrowsTable({
+  borrows,
+}: Props) {
+  const [myBorrows, setMyBorrows] =
+    useState<Borrow[]>(borrows);
 
-  const activeBorrows = [...borrows].sort((a, b) =>
+  const [search, setSearch] = useState("");
+  const [notification, setNotification] = useState<
+    string | null
+  >(null);
+
+  const activeBorrows = [...myBorrows].sort((a, b) =>
     a.returnDate.localeCompare(b.returnDate)
   );
 
@@ -98,7 +119,10 @@ export default function MyBorrowsTable({ borrows }: Props) {
   const stats = [
     {
       title: "Active Borrows",
-      value: String(activeBorrows.length).padStart(2, "0"),
+      value: String(activeBorrows.length).padStart(
+        2,
+        "0"
+      ),
       icon: BookOpen,
     },
     {
@@ -109,14 +133,63 @@ export default function MyBorrowsTable({ borrows }: Props) {
     {
       title: "Next Return",
       value: nextReturn
-        ? formatDate(nextReturn).replace(", 2026", "")
+        ? formatDate(nextReturn).split(",")[0]
         : "—",
       icon: CalendarDays,
     },
   ];
 
+  const handleReturn = (borrowId: string) => {
+    const borrowedBook = myBorrows.find(
+      (borrow) => borrow.id === borrowId
+    );
+
+    if (!borrowedBook) return;
+
+    setMyBorrows((currentBorrows) =>
+      currentBorrows.filter(
+        (borrow) => borrow.id !== borrowId
+      )
+    );
+
+    setNotification(
+      `"${borrowedBook.bookTitle}" has been returned in the demo preview.`
+    );
+  };
+
   return (
     <div>
+      {notification && (
+        <div
+          role="status"
+          className="fixed right-5 top-24 z-50 flex w-[calc(100%-2.5rem)] max-w-sm items-start gap-3 rounded-xl border border-[#CDE2D2] bg-white p-4 shadow-xl"
+        >
+          <CheckCircle2
+            size={22}
+            className="shrink-0 text-[#167454]"
+          />
+
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-[#07352C]">
+              Book Returned Successfully
+            </p>
+
+            <p className="mt-1 text-xs leading-6 text-[#64776D]">
+              {notification}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setNotification(null)}
+            aria-label="Dismiss notification"
+            className="shrink-0 text-[#829188] transition-colors hover:text-[#07352C]"
+          >
+            <X size={18} />
+          </button>
+        </div>
+      )}
+
       <div className="grid gap-4 sm:grid-cols-3">
         {stats.map((stat) => {
           const Icon = stat.icon;
@@ -199,20 +272,20 @@ export default function MyBorrowsTable({ borrows }: Props) {
 
             <h3 className="font-serif mt-5 text-2xl font-bold text-[#07352C]">
               {activeBorrows.length === 0
-                ? "No Borrowed Books Yet"
+                ? "Your Reading List Is Clear"
                 : "No Matching Books"}
             </h3>
 
             <p className="mt-3 max-w-md text-sm leading-7 text-[#64776D]">
               {activeBorrows.length === 0
-                ? "Explore our collection to discover your next favorite book."
+                ? "You have no active borrowed books. Explore the collection and discover your next favorite story."
                 : "Try searching with another book title or author."}
             </p>
 
             {activeBorrows.length === 0 ? (
               <Link
                 href="/books"
-                className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[#07352C] px-6 py-3 text-sm font-semibold text-white hover:bg-[#145244]"
+                className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[#07352C] px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#145244]"
               >
                 Explore Books
                 <ArrowUpRight size={16} />
@@ -263,7 +336,9 @@ export default function MyBorrowsTable({ borrows }: Props) {
                     >
                       <td className="px-6 py-5">
                         <div className="flex items-center gap-4">
-                          <BorrowedBookCover borrow={borrow} />
+                          <BorrowedBookCover
+                            borrow={borrow}
+                          />
 
                           <div className="min-w-0">
                             <Link
@@ -300,15 +375,10 @@ export default function MyBorrowsTable({ borrows }: Props) {
                       </td>
 
                       <td className="px-5 py-5">
-                        <button
-                          type="button"
-                          disabled
-                          title="Return Book will be enabled in Step 13.2"
-                          className="inline-flex cursor-not-allowed items-center gap-2 rounded-lg border border-[#E5EBE6] bg-[#F8FAF7] px-4 py-3 text-xs font-semibold text-[#64776D] opacity-60"
-                        >
-                          <RotateCcw size={15} />
-                          Return Book
-                        </button>
+                        <ReturnBookModal
+                          borrow={borrow}
+                          onReturn={handleReturn}
+                        />
                       </td>
                     </tr>
                   ))}
@@ -376,14 +446,10 @@ export default function MyBorrowsTable({ borrows }: Props) {
                       <ArrowUpRight size={14} />
                     </Link>
 
-                    <button
-                      type="button"
-                      disabled
-                      className="inline-flex cursor-not-allowed items-center gap-2 rounded-lg border border-[#E5EBE6] bg-[#F8FAF7] px-4 py-3 text-xs font-semibold text-[#64776D] opacity-60"
-                    >
-                      <RotateCcw size={15} />
-                      Return Book
-                    </button>
+                    <ReturnBookModal
+                      borrow={borrow}
+                      onReturn={handleReturn}
+                    />
                   </div>
                 </article>
               ))}
@@ -393,9 +459,9 @@ export default function MyBorrowsTable({ borrows }: Props) {
 
         <div className="border-t border-[#E5EBE6] bg-[#FAFBF9] px-6 py-4">
           <p className="text-xs leading-6 text-[#829188]">
-            Borrowing records are demonstration data.
-            Return Book functionality will be added
-            in Step 13.2.
+            Returns update this frontend preview only.
+            Database persistence and book inventory updates
+            will be connected during backend integration.
           </p>
         </div>
       </div>
