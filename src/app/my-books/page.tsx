@@ -2,14 +2,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import {
-  ArrowLeft,
-  Plus,
-  BookOpen,
-  Layers3,
-  BookCheck,
-  BookMarked,
-} from "lucide-react";
+import { ArrowLeft, Plus } from "lucide-react";
 
 import MyBooksTable from "@/components/books/my-books-table";
 import { books } from "@/data/books";
@@ -22,41 +15,6 @@ export const metadata: Metadata = {
 
 export default function MyBooksPage() {
   const demoBooks = books.slice(0, 4);
-
-  const totalCopies = demoBooks.reduce(
-    (total, book) => total + book.totalCopies,
-    0
-  );
-
-  const availableCopies = demoBooks.reduce(
-    (total, book) => total + book.availableCopies,
-    0
-  );
-
-  const borrowedCopies = totalCopies - availableCopies;
-
-  const stats = [
-    {
-      label: "Shared Books",
-      value: demoBooks.length,
-      icon: BookOpen,
-    },
-    {
-      label: "Total Copies",
-      value: totalCopies,
-      icon: Layers3,
-    },
-    {
-      label: "Available Copies",
-      value: availableCopies,
-      icon: BookCheck,
-    },
-    {
-      label: "On Loan",
-      value: borrowedCopies,
-      icon: BookMarked,
-    },
-  ];
 
   return (
     <main className="min-h-screen bg-[#F8FAF7] px-5 py-12 sm:py-16 lg:px-10">
@@ -100,47 +58,13 @@ export default function MyBooksPage() {
 
         <div className="mt-10 rounded-xl border border-[#E5E5D5] bg-[#FCF9EB] px-5 py-4">
           <p className="text-sm leading-6 text-[#796D48]">
-            Demo Preview: This page currently shows four sample
-            books. After authentication and MongoDB integration,
-            it will display only the books you added.
+            Demo Preview: This page currently shows four
+            sample books. Changes will be saved to MongoDB
+            after authentication and backend integration.
           </p>
         </div>
 
-        <div className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
-          {stats.map((stat) => {
-            const Icon = stat.icon;
-
-            return (
-              <div
-                key={stat.label}
-                className="rounded-xl border border-[#E5EBE6] bg-white p-5 shadow-sm sm:p-6"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#E7F0E9]">
-                    <Icon
-                      size={21}
-                      className="text-[#07352C]"
-                    />
-                  </div>
-
-                  <span className="font-serif text-3xl font-bold text-[#DCE7DF]">
-                    {String(stat.value).padStart(2, "0")}
-                  </span>
-                </div>
-
-                <h2 className="mt-5 text-xs font-semibold uppercase tracking-wider text-[#829188]">
-                  {stat.label}
-                </h2>
-
-                <p className="font-serif mt-2 text-3xl font-bold text-[#07352C]">
-                  {stat.value}
-                </p>
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="mt-10">
+        <div className="mt-8">
           <MyBooksTable books={demoBooks} />
         </div>
       </div>
