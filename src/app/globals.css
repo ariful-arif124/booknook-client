@@ -10,3 +10,128 @@ body {
 .font-serif {
   font-family: var(--font-playfair), Georgia, serif;
 }
+
+html {
+  scroll-behavior: smooth;
+}
+
+::selection {
+  background: #a34d32;
+  color: #ffffff;
+}
+
+.booknook-slider {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background: #f8faf7;
+}
+
+.booknook-slider .swiper {
+  width: 100%;
+  padding-bottom: 85px;
+}
+
+.booknook-slider .swiper-slide {
+  height: auto;
+}
+
+.booknook-slider .swiper-button-next,
+.booknook-slider .swiper-button-prev {
+  top: auto !important;
+  bottom: 20px !important;
+  margin-top: 0 !important;
+  width: 42px;
+  height: 42px;
+  border: 1px solid #e3e9e3;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #07352c !important;
+  z-index: 20;
+  transition: all 0.3s ease;
+}
+
+.booknook-slider .swiper-button-prev {
+  left: auto !important;
+  right: 82px !important;
+}
+
+.booknook-slider .swiper-button-next {
+  left: auto !important;
+  right: 24px !important;
+}
+
+.booknook-slider .swiper-button-next:hover,
+.booknook-slider .swiper-button-prev:hover {
+  background: #07352c;
+  color: #ffffff !important;
+  border-color: #07352c;
+}
+
+.booknook-slider .swiper-button-next::after,
+.booknook-slider .swiper-button-prev::after {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.booknook-slider .swiper-pagination {
+  bottom: 35px !important;
+  z-index: 10;
+}
+
+.booknook-slider .swiper-pagination-bullet {
+  width: 8px;
+  height: 8px;
+  margin: 0 5px !important;
+  border-radius: 50%;
+  background: #07352c !important;
+  opacity: 0.25;
+  transition: all 0.3s ease;
+}
+
+.booknook-slider .swiper-pagination-bullet-active {
+  width: 26px;
+  height: 8px;
+  border-radius: 20px;
+  background: #07352c !important;
+  opacity: 1 !important;
+}
+
+.booknook-slider .swiper-pagination-bullet:hover {
+  opacity: 0.75;
+}
+
+@media (max-width: 1024px) {
+  .booknook-slider .swiper-button-prev {
+    right: 72px !important;
+  }
+
+  .booknook-slider .swiper-button-next {
+    right: 16px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .booknook-slider .swiper {
+    padding-bottom: 65px;
+  }
+
+  .booknook-slider .swiper-button-next,
+  .booknook-slider .swiper-button-prev {
+    display: none !important;
+  }
+
+  .booknook-slider .swiper-pagination {
+    bottom: 22px !important;
+  }
+
+  .booknook-slider .swiper-pagination-bullet {
+    width: 7px;
+    height: 7px;
+  }
+
+  .booknook-slider .swiper-pagination-bullet-active {
+    width: 22px;
+    height: 7px;
+  }
+}
