@@ -1,8 +1,8 @@
-
 "use client";
 
 import Link from "next/link";
 import { useState, type FormEvent } from "react";
+
 import {
   ArrowRight,
   ArrowUpRight,
@@ -11,13 +11,16 @@ import {
   Circle,
   Eye,
   EyeOff,
+  ImageIcon,
+  Loader2,
   LockKeyhole,
   Mail,
-  UserRound,
-  ImageIcon,
   Sparkles,
+  UserRound,
 } from "lucide-react";
+
 import { FcGoogle } from "react-icons/fc";
+import { authClient } from "@/lib/auth-client";
 
 export default function RegisterForm() {
   const [name, setName] = useState("");
@@ -25,13 +28,15 @@ export default function RegisterForm() {
   const [photoURL, setPhotoURL] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
   const passwordRules = [
     {
-      label: "At least 6 characters",
-      valid: password.length >= 6,
+      label: "At least 8 characters",
+      valid: password.length >= 8,
     },
     {
       label: "At least one uppercase letter",
@@ -43,35 +48,121 @@ export default function RegisterForm() {
     },
   ];
 
-  const isPasswordValid = passwordRules.every(
-    (rule) => rule.valid
-  );
+  const isPasswordValid =
+    passwordRules.every((rule) => rule.valid) &&
+    password.length <= 128;
 
-  const handleRegister = (e: FormEvent<HTMLFormElement>) => {
+  const handleRegister = async (
+    e: FormEvent<HTMLFormElement>
+  ) => {
     e.preventDefault();
+
+    if (isLoading || isGoogleLoading) return;
+
     setError("");
     setMessage("");
 
-    if (!name.trim() || !email.trim() || !photoURL.trim()) {
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim().toLowerCase();
+    const trimmedPhotoURL = photoURL.trim();
+
+    if (
+      !trimmedName ||
+      !trimmedEmail ||
+      !trimmedPhotoURL ||
+      !password
+    ) {
       setError("Please fill in all required fields.");
       return;
     }
 
     if (!isPasswordValid) {
-      setError("Please meet all password requirements.");
+      setError(
+        "Please meet all password requirements. Maximum password length is 128 characters."
+      );
       return;
     }
 
-    setMessage(
-      "Your form is valid. Account registration will be enabled when Better Auth is connected."
-    );
+    try {
+      const parsedURL = new URL(trimmedPhotoURL);
+
+      if (
+        parsedURL.protocol !== "https:" &&
+        parsedURL.protocol !== "http:"
+      ) {
+        setError("Please enter a valid HTTP or HTTPS photo URL.");
+        return;
+      }
+    } catch {
+      setError("Please enter a valid photo URL.");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const { data, error: signUpError } =
+        await authClient.signUp.email({
+          name: trimmedName,
+          email: trimmedEmail,
+          password,
+          image: trimmedPhotoURL,
+        });
+
+      if (signUpError) {
+        setError(
+          signUpError.message ||
+            "Account registration failed. Please try again."
+        );
+        return;
+      }
+
+      if (!data?.user) {
+        setError(
+          "We couldn't confirm your registration. Please try again."
+        );
+        return;
+      }
+
+      setMessage(
+        "Your BookNook account has been created successfully!"
+      );
+
+      setPassword("");
+    } catch {
+      setError(
+        "Unable to complete registration. Please check your connection and try again."
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleGoogleRegister = () => {
+  const handleGoogleRegister = async () => {
+    if (isLoading || isGoogleLoading) return;
+
     setError("");
-    setMessage(
-      "Google registration will be enabled when Better Auth is connected."
-    );
+    setMessage("");
+    setIsGoogleLoading(true);
+
+    try {
+      const { error: googleError } =
+        await authClient.signIn.social({
+          provider: "google",
+          callbackURL: "/",
+        });
+
+      if (googleError) {
+        setError(
+          googleError.message ||
+            "Google registration failed. Please try again."
+        );
+      }
+    } catch {
+      setError("Unable to register with Google. Please try again.");
+    } finally {
+      setIsGoogleLoading(false);
+    }
   };
 
   return (
@@ -86,7 +177,11 @@ export default function RegisterForm() {
             href="/"
             className="relative z-10 inline-flex items-center gap-3"
           >
-            <BookOpen size={31} className="text-[#E7C98D]" />
+            <BookOpen
+              size={31}
+              className="text-[#E7C98D]"
+            />
+
             <span className="font-serif text-3xl font-bold">
               BookNook
             </span>
@@ -102,7 +197,11 @@ export default function RegisterForm() {
             </div>
 
             <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2">
-              <Sparkles size={15} className="text-[#E7C98D]" />
+              <Sparkles
+                size={15}
+                className="text-[#E7C98D]"
+              />
+
               <span className="text-[11px] font-bold uppercase tracking-widest text-[#E7C98D]">
                 Join Our Reading Community
               </span>
@@ -133,6 +232,7 @@ export default function RegisterForm() {
                     size={20}
                     className="text-[#E7C98D]"
                   />
+
                   {item}
                 </div>
               ))}
@@ -141,6 +241,7 @@ export default function RegisterForm() {
 
           <div className="relative z-10">
             <div className="mb-6 h-px bg-white/15" />
+
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#E7C98D]">
               Discover · Borrow · Return
             </p>
@@ -153,7 +254,10 @@ export default function RegisterForm() {
               href="/"
               className="mb-9 inline-flex items-center gap-2 font-serif text-2xl font-bold text-[#07352C] lg:hidden"
             >
-              <BookOpen size={26} className="text-[#A34D32]" />
+              <BookOpen
+                size={26}
+                className="text-[#A34D32]"
+              />
               BookNook
             </Link>
 
@@ -171,7 +275,11 @@ export default function RegisterForm() {
             </p>
           </div>
 
-          <form onSubmit={handleRegister} className="space-y-5">
+          <form
+            onSubmit={handleRegister}
+            className="space-y-5"
+            aria-busy={isLoading || isGoogleLoading}
+          >
             <div>
               <label
                 htmlFor="register-name"
@@ -192,9 +300,10 @@ export default function RegisterForm() {
                   required
                   autoComplete="name"
                   value={name}
+                  disabled={isLoading}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Enter your full name"
-                  className="h-14 w-full rounded-lg border border-[#E1E8E2] bg-[#F8FAF7] pl-12 pr-4 text-sm text-[#07352C] outline-none placeholder:text-[#95A59A] focus:border-[#A34D32] focus:ring-2 focus:ring-[#A34D32]/10"
+                  className="h-14 w-full rounded-lg border border-[#E1E8E2] bg-[#F8FAF7] pl-12 pr-4 text-sm text-[#07352C] outline-none placeholder:text-[#95A59A] focus:border-[#A34D32] focus:ring-2 focus:ring-[#A34D32]/10 disabled:opacity-60"
                 />
               </div>
             </div>
@@ -219,9 +328,10 @@ export default function RegisterForm() {
                   required
                   autoComplete="email"
                   value={email}
+                  disabled={isLoading}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email address"
-                  className="h-14 w-full rounded-lg border border-[#E1E8E2] bg-[#F8FAF7] pl-12 pr-4 text-sm text-[#07352C] outline-none placeholder:text-[#95A59A] focus:border-[#A34D32] focus:ring-2 focus:ring-[#A34D32]/10"
+                  className="h-14 w-full rounded-lg border border-[#E1E8E2] bg-[#F8FAF7] pl-12 pr-4 text-sm text-[#07352C] outline-none placeholder:text-[#95A59A] focus:border-[#A34D32] focus:ring-2 focus:ring-[#A34D32]/10 disabled:opacity-60"
                 />
               </div>
             </div>
@@ -245,9 +355,10 @@ export default function RegisterForm() {
                   type="url"
                   required
                   value={photoURL}
+                  disabled={isLoading}
                   onChange={(e) => setPhotoURL(e.target.value)}
                   placeholder="https://example.com/photo.jpg"
-                  className="h-14 w-full rounded-lg border border-[#E1E8E2] bg-[#F8FAF7] pl-12 pr-4 text-sm text-[#07352C] outline-none placeholder:text-[#95A59A] focus:border-[#A34D32] focus:ring-2 focus:ring-[#A34D32]/10"
+                  className="h-14 w-full rounded-lg border border-[#E1E8E2] bg-[#F8FAF7] pl-12 pr-4 text-sm text-[#07352C] outline-none placeholder:text-[#95A59A] focus:border-[#A34D32] focus:ring-2 focus:ring-[#A34D32]/10 disabled:opacity-60"
                 />
               </div>
             </div>
@@ -268,26 +379,38 @@ export default function RegisterForm() {
 
                 <input
                   id="register-password"
-                  type={showPassword ? "text" : "password"}
+                  type={
+                    showPassword ? "text" : "password"
+                  }
                   required
+                  minLength={8}
+                  maxLength={128}
                   autoComplete="new-password"
                   value={password}
+                  disabled={isLoading}
                   onChange={(e) => {
                     setPassword(e.target.value);
                     setError("");
                     setMessage("");
                   }}
                   aria-describedby="password-rules"
-                  aria-invalid={!!error && !isPasswordValid}
+                  aria-invalid={
+                    Boolean(error) && !isPasswordValid
+                  }
                   placeholder="Create a strong password"
-                  className="h-14 w-full rounded-lg border border-[#E1E8E2] bg-[#F8FAF7] pl-12 pr-12 text-sm text-[#07352C] outline-none placeholder:text-[#95A59A] focus:border-[#A34D32] focus:ring-2 focus:ring-[#A34D32]/10"
+                  className="h-14 w-full rounded-lg border border-[#E1E8E2] bg-[#F8FAF7] pl-12 pr-12 text-sm text-[#07352C] outline-none placeholder:text-[#95A59A] focus:border-[#A34D32] focus:ring-2 focus:ring-[#A34D32]/10 disabled:opacity-60"
                 />
 
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
+                  disabled={isLoading}
+                  onClick={() =>
+                    setShowPassword(!showPassword)
+                  }
                   aria-label={
-                    showPassword ? "Hide password" : "Show password"
+                    showPassword
+                      ? "Hide password"
+                      : "Show password"
                   }
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-[#84988C] hover:text-[#07352C]"
                 >
@@ -354,10 +477,23 @@ export default function RegisterForm() {
 
             <button
               type="submit"
-              className="flex h-14 w-full items-center justify-center gap-3 rounded-lg bg-[#07352C] text-sm font-semibold text-white shadow-lg shadow-[#07352C]/10 transition-all hover:bg-[#145244]"
+              disabled={isLoading}
+              className="flex h-14 w-full items-center justify-center gap-3 rounded-lg bg-[#07352C] text-sm font-semibold text-white shadow-lg shadow-[#07352C]/10 transition-all hover:bg-[#145244] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Create Account
-              <ArrowRight size={18} />
+              {isLoading ? (
+                <>
+                  <Loader2
+                    size={19}
+                    className="animate-spin"
+                  />
+                  Creating Account...
+                </>
+              ) : (
+                <>
+                  Create Account
+                  <ArrowRight size={18} />
+                </>
+              )}
             </button>
           </form>
 
@@ -373,11 +509,21 @@ export default function RegisterForm() {
 
           <button
             type="button"
+            disabled={isLoading || isGoogleLoading}
             onClick={handleGoogleRegister}
-            className="flex h-14 w-full items-center justify-center gap-3 rounded-lg border border-[#E1E8E2] bg-white text-sm font-semibold text-[#07352C] transition-all hover:border-[#B9CFC0] hover:bg-[#F8FAF7]"
+            className="flex h-14 w-full items-center justify-center gap-3 rounded-lg border border-[#E1E8E2] bg-white text-sm font-semibold text-[#07352C] transition-all hover:border-[#B9CFC0] hover:bg-[#F8FAF7] disabled:opacity-60"
           >
-            <FcGoogle size={23} />
-            Continue with Google
+            {isGoogleLoading ? (
+              <>
+                <Loader2 size={20} className="animate-spin" />
+                Connecting to Google...
+              </>
+            ) : (
+              <>
+                <FcGoogle size={23} />
+                Continue with Google
+              </>
+            )}
           </button>
 
           <p className="mt-9 text-center text-sm text-[#64776D]">
