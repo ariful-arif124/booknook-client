@@ -8,7 +8,6 @@ import { useState } from "react";
 import {
   Search,
   BookOpen,
-  Trash2,
   X,
   ArrowUpRight,
   Layers3,
@@ -18,10 +17,16 @@ import {
 } from "lucide-react";
 
 import EditBookModal from "@/components/books/edit-book-modal";
+import DeleteBookModal from "@/components/books/delete-book-modal";
 import type { Book } from "@/data/books";
 
 type Props = {
   books: Book[];
+};
+
+type Notification = {
+  title: string;
+  description: string;
 };
 
 function formatDate(date: string) {
@@ -32,9 +37,18 @@ function formatDate(date: string) {
   }
 
   const months = [
-    "Jan", "Feb", "Mar", "Apr",
-    "May", "Jun", "Jul", "Aug",
-    "Sep", "Oct", "Nov", "Dec",
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
   ];
 
   if (month < 1 || month > 12) {
@@ -53,7 +67,10 @@ function BookCover({ book }: { book: Book }) {
     <div className="relative h-20 w-14 shrink-0 overflow-hidden rounded-md border border-[#E5EBE6] bg-[#EEF3EF]">
       {failedImage === book.image ? (
         <div className="flex h-full items-center justify-center">
-          <BookOpen size={23} className="text-[#829D8C]" />
+          <BookOpen
+            size={23}
+            className="text-[#829D8C]"
+          />
         </div>
       ) : (
         <Image
@@ -72,7 +89,9 @@ function BookCover({ book }: { book: Book }) {
 export default function MyBooksTable({ books }: Props) {
   const [myBooks, setMyBooks] = useState<Book[]>(books);
   const [search, setSearch] = useState("");
-  const [notification, setNotification] = useState("");
+
+  const [notification, setNotification] =
+    useState<Notification | null>(null);
 
   const totalCopies = myBooks.reduce(
     (sum, book) => sum + book.totalCopies,
@@ -128,24 +147,40 @@ export default function MyBooksTable({ books }: Props) {
       )
     );
 
-    setNotification(
-      `"${updatedBook.title}" updated in the demo preview.`
+    setNotification({
+      title: "Book Updated",
+      description: `"${updatedBook.title}" updated in the demo preview.`,
+    });
+  };
+
+  const handleDelete = (bookId: string) => {
+    const bookToDelete = myBooks.find(
+      (book) => book.id === bookId
     );
+
+    if (!bookToDelete) return;
+
+    setMyBooks((currentBooks) =>
+      currentBooks.filter((book) => book.id !== bookId)
+    );
+
+    setNotification({
+      title: "Book Deleted",
+      description: `"${bookToDelete.title}" removed from the demo preview.`,
+    });
   };
 
   const renderActions = (book: Book) => (
     <div className="flex items-center gap-2">
-      <EditBookModal book={book} onSave={handleSave} />
+      <EditBookModal
+        book={book}
+        onSave={handleSave}
+      />
 
-      <button
-        type="button"
-        disabled
-        title="Delete functionality will be added in Step 12.3"
-        aria-label={`Delete ${book.title} - coming in Step 12.3`}
-        className="flex h-9 w-9 cursor-not-allowed items-center justify-center rounded-lg border border-[#F0DEDA] bg-[#FCF6F4] text-[#A34D32] opacity-60"
-      >
-        <Trash2 size={16} />
-      </button>
+      <DeleteBookModal
+        book={book}
+        onDelete={handleDelete}
+      />
     </div>
   );
 
@@ -161,21 +196,21 @@ export default function MyBooksTable({ books }: Props) {
             className="shrink-0 text-[#167454]"
           />
 
-          <div>
+          <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-[#07352C]">
-              Book Updated
+              {notification.title}
             </p>
 
             <p className="mt-1 text-xs leading-5 text-[#64776D]">
-              {notification}
+              {notification.description}
             </p>
           </div>
 
           <button
             type="button"
-            onClick={() => setNotification("")}
+            onClick={() => setNotification(null)}
             aria-label="Dismiss notification"
-            className="text-[#829188] hover:text-[#07352C]"
+            className="shrink-0 text-[#829188] transition-colors hover:text-[#07352C]"
           >
             <X size={17} />
           </button>
@@ -258,18 +293,34 @@ export default function MyBooksTable({ books }: Props) {
 
         {filteredBooks.length === 0 ? (
           <div className="flex min-h-72 flex-col items-center justify-center px-6 py-14 text-center">
-            <BookOpen
-              size={36}
-              className="text-[#829D8C]"
-            />
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#E9F0EA]">
+              <BookOpen
+                size={30}
+                className="text-[#829D8C]"
+              />
+            </div>
 
             <h3 className="font-serif mt-5 text-2xl font-bold text-[#07352C]">
-              No Books Found
+              {myBooks.length === 0
+                ? "Your Bookshelf Is Empty"
+                : "No Books Found"}
             </h3>
 
-            <p className="mt-3 text-sm text-[#64776D]">
-              Try a different title, author, or category.
+            <p className="mt-3 max-w-sm text-center text-sm leading-7 text-[#64776D]">
+              {myBooks.length === 0
+                ? "There are no books in this preview. Add a new book when the database is connected."
+                : "Try searching with a different title, author, or category."}
             </p>
+
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch("")}
+                className="mt-5 rounded-lg bg-[#07352C] px-5 py-3 text-xs font-semibold text-white transition-colors hover:bg-[#145244]"
+              >
+                Clear Search
+              </button>
+            )}
           </div>
         ) : (
           <>
@@ -277,12 +328,29 @@ export default function MyBooksTable({ books }: Props) {
               <table className="w-full min-w-[850px] text-left">
                 <thead className="bg-[#F2F5F1]">
                   <tr className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#64776D]">
-                    <th className="px-6 py-5">Book Details</th>
-                    <th className="px-5 py-5">Category</th>
-                    <th className="px-5 py-5">Total</th>
-                    <th className="px-5 py-5">Available</th>
-                    <th className="px-5 py-5">Date Added</th>
-                    <th className="px-5 py-5">Actions</th>
+                    <th className="px-6 py-5">
+                      Book Details
+                    </th>
+
+                    <th className="px-5 py-5">
+                      Category
+                    </th>
+
+                    <th className="px-5 py-5">
+                      Total
+                    </th>
+
+                    <th className="px-5 py-5">
+                      Available
+                    </th>
+
+                    <th className="px-5 py-5">
+                      Date Added
+                    </th>
+
+                    <th className="px-5 py-5">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
 
@@ -352,7 +420,10 @@ export default function MyBooksTable({ books }: Props) {
 
             <div className="divide-y divide-[#E9EEEA] md:hidden">
               {filteredBooks.map((book) => (
-                <article key={book.id} className="p-5">
+                <article
+                  key={book.id}
+                  className="p-5"
+                >
                   <div className="flex items-start gap-4">
                     <BookCover book={book} />
 
@@ -406,7 +477,7 @@ export default function MyBooksTable({ books }: Props) {
                     </div>
                   </div>
 
-                  <div className="mt-5 flex items-center justify-between">
+                  <div className="mt-5 flex items-center justify-between gap-3">
                     <Link
                       href={`/books/${book.id}`}
                       className="inline-flex items-center gap-1 text-xs font-semibold text-[#A34D32]"
@@ -425,8 +496,9 @@ export default function MyBooksTable({ books }: Props) {
 
         <div className="border-t border-[#E5EBE6] bg-[#FAFBF9] px-6 py-4">
           <p className="text-xs text-[#829188]">
-            Edits are temporary in this frontend preview.
-            Delete functionality will be added next.
+            Edit and Delete changes are temporary in this
+            frontend preview. Database persistence will be
+            added later.
           </p>
         </div>
       </div>
