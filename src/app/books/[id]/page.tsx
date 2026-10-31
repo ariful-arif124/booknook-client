@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import { books } from "@/data/books";
+import BorrowBookModal from "@/components/books/borrow-book-modal";
 
 type Props = {
   params: Promise<{
@@ -36,6 +37,7 @@ export async function generateMetadata({
 
   return {
     title: `BookNook | ${book?.title ?? "Book Not Found"}`,
+    description: book?.description ?? "Explore books on BookNook.",
   };
 }
 
@@ -107,7 +109,10 @@ export default async function BookDetailsPage({
 
               <div className="mt-8 flex items-center justify-between border-t border-[#EDF0EC] pt-5">
                 <span className="flex items-center gap-2 text-xs text-[#64776D]">
-                  <BookOpen size={15} className="text-[#A34D32]" />
+                  <BookOpen
+                    size={15}
+                    className="text-[#A34D32]"
+                  />
                   Physical Book
                 </span>
 
@@ -282,7 +287,10 @@ export default async function BookDetailsPage({
                 </p>
 
                 <p className="mt-3 flex items-center gap-2 text-sm font-medium text-[#07352C]">
-                  <UserRound size={17} className="text-[#A34D32]" />
+                  <UserRound
+                    size={17}
+                    className="text-[#A34D32]"
+                  />
                   {addedBy}
                 </p>
               </div>
@@ -290,17 +298,7 @@ export default async function BookDetailsPage({
 
             <div className="mt-10 rounded-2xl border border-[#E5EBE6] bg-white p-5 sm:p-7">
               <div className="flex flex-col gap-3 sm:flex-row">
-                <button
-                  type="button"
-                  disabled
-                  className="inline-flex flex-1 cursor-not-allowed items-center justify-center gap-3 rounded-lg bg-[#07352C] px-7 py-4 text-sm font-semibold text-white"
-                >
-                  <BookOpen size={19} />
-
-                  {isAvailable
-                    ? "Borrow This Book"
-                    : "Not Available"}
-                </button>
+                <BorrowBookModal book={book} />
 
                 <Link
                   href="/books"
@@ -313,7 +311,7 @@ export default async function BookDetailsPage({
 
               <p className="mt-5 text-center text-xs leading-6 text-[#829188]">
                 {isAvailable
-                  ? "Borrowing will be enabled when we add the Borrow modal and authentication."
+                  ? "Review the borrowing information in the modal. Confirmation will be enabled after authentication and backend integration."
                   : "All copies are currently unavailable. Please explore another book."}
               </p>
             </div>
