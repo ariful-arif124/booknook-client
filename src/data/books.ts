@@ -1,4 +1,5 @@
 
+
 export type Book = {
   id: string;
   title: string;
@@ -8,6 +9,7 @@ export type Book = {
   description: string;
   totalCopies: number;
   availableCopies: number;
+  addedByName?: string;
 };
 
 export const books: Book[] = [
