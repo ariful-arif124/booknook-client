@@ -5,7 +5,7 @@ import { Suspense } from "react";
 import { ChevronRight, BookOpen } from "lucide-react";
 
 import BookExplorer from "@/components/books/book-explorer";
-import { books } from "@/data/books";
+import { getExplorerBooks } from "@/lib/books-api";
 
 export const metadata: Metadata = {
   title: "BookNook | All Books",
@@ -13,7 +13,9 @@ export const metadata: Metadata = {
     "Explore the BookNook collection and discover your next favorite book.",
 };
 
-export default function AllBooksPage() {
+export default async function AllBooksPage() {
+  const books = await getExplorerBooks();
+
   return (
     <div className="min-h-screen bg-[#F8FAF7]">
       <section className="border-b border-[#E5EBE6] px-5 py-14 lg:px-10">
@@ -55,7 +57,10 @@ export default function AllBooksPage() {
             </div>
 
             <div className="inline-flex w-fit items-center gap-3 rounded-lg border border-[#E5EBE6] bg-white px-5 py-3">
-              <BookOpen size={19} className="text-[#A34D32]" />
+              <BookOpen
+                size={19}
+                className="text-[#A34D32]"
+              />
 
               <span className="text-sm font-semibold text-[#07352C]">
                 {books.length} Community Books

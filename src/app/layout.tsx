@@ -1,6 +1,6 @@
-
 import type { Metadata } from "next";
 import { DM_Sans, Playfair_Display } from "next/font/google";
+import { Toaster } from "sonner";
 
 import Navbar from "@/components/layout/navbar";
 import Footer from "@/components/layout/footer";
@@ -19,8 +19,7 @@ const playfair = Playfair_Display({
 
 export const metadata: Metadata = {
   title: "BookNook | Home",
-  description:
-    "Discover, share, and borrow your favorite books.",
+  description: "Discover, share, and borrow your favorite books.",
 };
 
 export default function RootLayout({
@@ -32,12 +31,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${dmSans.variable} ${playfair.variable}`}>
         <Navbar />
-
-        <main className="min-h-screen">
-          {children}
-        </main>
-
+        <main className="min-h-screen">{children}</main>
         <Footer />
+        <Toaster position="top-right" richColors closeButton />
       </body>
     </html>
   );

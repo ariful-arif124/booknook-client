@@ -1,4 +1,3 @@
-
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -13,7 +12,7 @@ import {
   UserRound,
 } from "lucide-react";
 
-import { books } from "@/data/books";
+import { getBookById, toBook } from "@/lib/books-api";
 import BorrowBookModal from "@/components/books/borrow-book-modal";
 
 type Props = {
@@ -22,18 +21,11 @@ type Props = {
   }>;
 };
 
-export function generateStaticParams() {
-  return books.map((book) => ({
-    id: book.id,
-  }));
-}
-
 export async function generateMetadata({
   params,
 }: Props): Promise<Metadata> {
   const { id } = await params;
-
-  const book = books.find((item) => item.id === id);
+  const book = await getBookById(id);
 
   return {
     title: `BookNook | ${book?.title ?? "Book Not Found"}`,
@@ -45,15 +37,15 @@ export default async function BookDetailsPage({
   params,
 }: Props) {
   const { id } = await params;
+  const apiBook = await getBookById(id);
 
-  const book = books.find((item) => item.id === id);
-
-  if (!book) {
+  if (!apiBook) {
     notFound();
   }
 
+  const book = toBook(apiBook);
   const isAvailable = book.availableCopies > 0;
-  const addedBy = book.addedByName ?? "BookNook Demo Catalog";
+  const addedBy = book.addedByName ?? "BookNook Library";
 
   return (
     <section className="min-h-screen bg-[#F8FAF7] px-5 py-12 sm:py-16 lg:px-10">
@@ -66,7 +58,6 @@ export default async function BookDetailsPage({
             <ArrowLeft size={18} />
             Back to All Books
           </Link>
-
           <nav
             aria-label="Breadcrumb"
             className="flex flex-wrap items-center gap-2 text-xs text-[#829188]"
@@ -74,15 +65,11 @@ export default async function BookDetailsPage({
             <Link href="/" className="hover:text-[#A34D32]">
               Home
             </Link>
-
             <ChevronRight size={13} />
-
             <Link href="/books" className="hover:text-[#A34D32]">
               All Books
             </Link>
-
             <ChevronRight size={13} />
-
             <span className="font-semibold text-[#07352C]">
               {book.title}
             </span>
@@ -95,7 +82,6 @@ export default async function BookDetailsPage({
               <span className="absolute right-5 top-5 z-10 rounded-md bg-[#A34D32] px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-white">
                 BookNook Collection
               </span>
-
               <div className="relative mx-auto mt-8 aspect-[3/4] w-full max-w-[350px] overflow-hidden rounded-lg bg-[#F0F3EF]">
                 <Image
                   src={book.image}
@@ -106,16 +92,11 @@ export default async function BookDetailsPage({
                   className="object-contain p-4"
                 />
               </div>
-
               <div className="mt-8 flex items-center justify-between border-t border-[#EDF0EC] pt-5">
                 <span className="flex items-center gap-2 text-xs text-[#64776D]">
-                  <BookOpen
-                    size={15}
-                    className="text-[#A34D32]"
-                  />
+                  <BookOpen size={15} className="text-[#A34D32]" />
                   Physical Book
                 </span>
-
                 <span className="text-xs font-medium text-[#07352C]">
                   {book.category}
                 </span>
@@ -125,48 +106,39 @@ export default async function BookDetailsPage({
             <div className="rounded-2xl border border-[#E5EBE6] bg-[#EEF3EF] p-6 sm:p-8">
               <div className="mb-7 flex items-center gap-3">
                 <Layers3 size={21} className="text-[#A34D32]" />
-
                 <h2 className="font-serif text-xl font-bold text-[#07352C]">
                   Book Specifications
                 </h2>
               </div>
-
               <dl className="grid grid-cols-2 gap-x-5 gap-y-7">
                 <div>
                   <dt className="text-[10px] font-bold uppercase tracking-widest text-[#829188]">
                     Category
                   </dt>
-
                   <dd className="mt-2 text-sm font-semibold text-[#07352C]">
                     {book.category}
                   </dd>
                 </div>
-
                 <div>
                   <dt className="text-[10px] font-bold uppercase tracking-widest text-[#829188]">
                     Total Copies
                   </dt>
-
                   <dd className="mt-2 text-sm font-semibold text-[#07352C]">
                     {book.totalCopies}
                   </dd>
                 </div>
-
                 <div>
                   <dt className="text-[10px] font-bold uppercase tracking-widest text-[#829188]">
                     Available Copies
                   </dt>
-
                   <dd className="mt-2 text-sm font-semibold text-[#07352C]">
                     {book.availableCopies}
                   </dd>
                 </div>
-
                 <div>
                   <dt className="text-[10px] font-bold uppercase tracking-widest text-[#829188]">
                     Availability
                   </dt>
-
                   <dd
                     className={`mt-2 text-sm font-semibold ${
                       isAvailable
@@ -184,46 +156,32 @@ export default async function BookDetailsPage({
           <div>
             <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-[#F2E9E2] px-4 py-2">
               <span className="h-2 w-2 rounded-full bg-[#A34D32]" />
-
               <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#A34D32]">
                 {book.category} Collection
               </span>
             </div>
-
             <h1 className="font-serif text-4xl font-bold leading-tight tracking-tight text-[#07352C] sm:text-5xl lg:text-6xl">
               {book.title}
             </h1>
-
             <p className="mt-5 text-lg text-[#A34D32]">
               By {book.author}
             </p>
 
             <div className="mt-9 grid gap-3 sm:grid-cols-3">
               <div className="rounded-xl border border-[#E5EBE6] bg-white p-5">
-                <UserRound
-                  size={20}
-                  className="mb-4 text-[#A34D32]"
-                />
-
+                <UserRound size={20} className="mb-4 text-[#A34D32]" />
                 <p className="text-[10px] font-bold uppercase tracking-wider text-[#829188]">
                   Added By
                 </p>
-
                 <p className="mt-2 break-words text-sm font-semibold text-[#07352C]">
                   {addedBy}
                 </p>
               </div>
-
               <div className="rounded-xl border border-[#E5EBE6] bg-white p-5">
-                <BookOpen
-                  size={20}
-                  className="mb-4 text-[#167454]"
-                />
-
+                <BookOpen size={20} className="mb-4 text-[#167454]" />
                 <p className="text-[10px] font-bold uppercase tracking-wider text-[#829188]">
                   Availability
                 </p>
-
                 <p
                   className={`mt-2 text-sm font-semibold ${
                     isAvailable
@@ -236,17 +194,11 @@ export default async function BookDetailsPage({
                     : "Not Available"}
                 </p>
               </div>
-
               <div className="rounded-xl border border-[#E5EBE6] bg-white p-5">
-                <Layers3
-                  size={20}
-                  className="mb-4 text-[#A34D32]"
-                />
-
+                <Layers3 size={20} className="mb-4 text-[#A34D32]" />
                 <p className="text-[10px] font-bold uppercase tracking-wider text-[#829188]">
                   Total Copies
                 </p>
-
                 <p className="mt-2 text-sm font-semibold text-[#07352C]">
                   {book.totalCopies} Copies
                 </p>
@@ -257,7 +209,6 @@ export default async function BookDetailsPage({
               <p className="font-serif text-lg font-semibold text-[#07352C]">
                 A story worth discovering.
               </p>
-
               <p className="mt-2 text-sm leading-7 text-[#64776D]">
                 Explore this title and find your next reading
                 experience through the BookNook collection.
@@ -267,30 +218,22 @@ export default async function BookDetailsPage({
             <div className="mt-10">
               <div className="mb-5 flex items-center gap-3">
                 <span className="h-px w-8 bg-[#A34D32]" />
-
                 <span className="text-xs font-bold uppercase tracking-widest text-[#A34D32]">
                   Book Overview
                 </span>
               </div>
-
               <h2 className="font-serif text-3xl font-bold text-[#07352C]">
                 Synopsis & Details
               </h2>
-
               <p className="mt-6 text-base leading-9 text-[#64776D]">
                 {book.description}
               </p>
-
               <div className="mt-8 border-t border-[#E5EBE6] pt-6">
                 <p className="text-xs font-bold uppercase tracking-widest text-[#829188]">
                   Shared By
                 </p>
-
                 <p className="mt-3 flex items-center gap-2 text-sm font-medium text-[#07352C]">
-                  <UserRound
-                    size={17}
-                    className="text-[#A34D32]"
-                  />
+                  <UserRound size={17} className="text-[#A34D32]" />
                   {addedBy}
                 </p>
               </div>
@@ -299,7 +242,6 @@ export default async function BookDetailsPage({
             <div className="mt-10 rounded-2xl border border-[#E5EBE6] bg-white p-5 sm:p-7">
               <div className="flex flex-col gap-3 sm:flex-row">
                 <BorrowBookModal book={book} />
-
                 <Link
                   href="/books"
                   className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#E5EBE6] bg-[#F7F9F6] px-6 py-4 text-sm font-semibold text-[#07352C] transition-colors hover:bg-[#EAF0EA]"
@@ -308,10 +250,9 @@ export default async function BookDetailsPage({
                   <ArrowRight size={17} />
                 </Link>
               </div>
-
               <p className="mt-5 text-center text-xs leading-6 text-[#829188]">
                 {isAvailable
-                  ? "Review the borrowing information in the modal. Confirmation will be enabled after authentication and backend integration."
+                  ? "Borrowing is available for signed-in members. Your return deadline is seven days after checkout."
                   : "All copies are currently unavailable. Please explore another book."}
               </p>
             </div>
