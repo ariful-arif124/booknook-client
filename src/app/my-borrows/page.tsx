@@ -1,20 +1,11 @@
-
 import type { Metadata } from "next";
 import Link from "next/link";
-
-import {
-  ArrowLeft,
-  ArrowRight,
-  BookOpenCheck,
-} from "lucide-react";
-
+import { ArrowLeft, ArrowRight, BookOpenCheck } from "lucide-react";
 import MyBorrowsTable from "@/components/books/my-borrows-table";
-import { demoBorrows } from "@/data/borrows";
 
 export const metadata: Metadata = {
   title: "BookNook | My Borrows",
-  description:
-    "Track your borrowed books and return dates on BookNook.",
+  description: "Track your borrowed books and return dates on BookNook.",
 };
 
 export default function MyBorrowsPage() {
@@ -33,7 +24,6 @@ export default function MyBorrowsPage() {
           <div className="max-w-2xl">
             <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-[#F3EAE3] px-4 py-2">
               <span className="h-2 w-2 rounded-full bg-[#A34D32]" />
-
               <span className="text-[10px] font-bold uppercase tracking-widest text-[#A34D32]">
                 My Reading Journey
               </span>
@@ -44,9 +34,8 @@ export default function MyBorrowsPage() {
             </h1>
 
             <p className="mt-5 text-sm leading-7 text-[#64776D] sm:text-base">
-              Keep track of the stories you have borrowed,
-              monitor your return dates, and manage
-              your reading journey.
+              Keep track of the stories you have borrowed, monitor your return
+              dates, and manage your reading journey.
             </p>
           </div>
 
@@ -60,17 +49,8 @@ export default function MyBorrowsPage() {
           </Link>
         </div>
 
-        <div className="mt-10 rounded-xl border border-[#E5E5D5] bg-[#FCF9EB] px-5 py-4">
-          <p className="text-sm leading-6 text-[#796D48]">
-            Demo Preview: This page currently displays
-            sample borrowing records. Actual borrowing
-            information will be connected through Better Auth
-            and MongoDB.
-          </p>
-        </div>
-
         <div className="mt-8">
-          <MyBorrowsTable borrows={demoBorrows} />
+          <MyBorrowsTable />
         </div>
       </div>
     </main>
