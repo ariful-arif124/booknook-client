@@ -21,5 +21,6 @@ export const config = {
     "/add-book/:path*",
     "/my-books/:path*",
     "/my-borrows/:path*",
+    "/books/:id",
   ],
 };
