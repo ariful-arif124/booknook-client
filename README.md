@@ -1,36 +1,174 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Getting Started
+# BookNook — A Small Online Library
 
-First, run the development server:
+BookNook is a responsive online library application where readers can discover books, contribute to a shared collection, borrow available copies, and return books. It includes secure authentication, personal book management, and a MongoDB-powered borrowing system.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Live Links
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- Live Website: https://booknook-client-mu.vercel.app
+- Frontend Repository: https://github.com/ariful-arif124/booknook-client
+- Backend Repository: https://github.com/ariful-arif124/booknook-server
+- Backend API: https://booknook-server-vkiu.onrender.com
+- API Health Check: https://booknook-server-vkiu.onrender.com/health
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Features
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Responsive Design:** A modern, responsive interface for mobile, tablet, and desktop devices.
+- **Interactive Homepage:** Three-slide Swiper carousel, dynamic New Arrivals, book categories, and additional informational sections.
+- **Dynamic Book Collection:** Browse and search books loaded directly from MongoDB.
+- **Secure Authentication:** Email/password login and Google OAuth using Better Auth and the MongoDB adapter.
+- **Add Books:** Authenticated users can contribute books with titles, authors, categories, descriptions, available copies, and cover images uploaded through ImgBB.
+- **Manage My Books:** Users can edit or delete books they contributed, with ownership checks and confirmation dialogs.
+- **Borrow Books:** Members can borrow available books, with JWT-protected requests and automatic inventory updates.
+- **Prevent Duplicate Borrowing:** Users cannot borrow the same book twice while an active loan exists.
+- **Return Books:** Members can return borrowed books, restore available inventory, and view borrowing history.
+- **Personal Dashboards:** My Books and My Borrows show user-specific records.
+- **User Feedback:** Toast notifications, loading indicators, empty states, and a custom not-found page.
+- **Persistent Sessions:** Authentication remains active after refreshing protected pages.
 
-## Learn More
+## Technology Stack
 
-To learn more about Next.js, take a look at the following resources:
+### Frontend
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- Next.js 16 with App Router
+- React 19
+- TypeScript
+- Tailwind CSS
+- shadcn/ui and Base UI
+- Swiper.js
+- Lucide React
+- Sonner
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Authentication and Security
 
-## Deploy on Vercel
+- Better Auth
+- MongoDB Adapter
+- Google OAuth
+- JSON Web Tokens (JWT)
+- Jose JWT verification
+- Protected API routes and resource ownership checks
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Backend
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Node.js
+- Express.js
+- MongoDB Atlas
+- MongoDB Node.js Driver
+
+### External Services
+
+- Vercel — Frontend hosting
+- Render — Backend hosting
+- MongoDB Atlas — Database
+- ImgBB — Book-cover image hosting
+
+## Core Pages
+
+| Route | Description |
+| --- | --- |
+| `/` | Homepage with featured books and New Arrivals |
+| `/books` | Browse and search books |
+| `/books/[id]` | View individual book details |
+| `/login` | Email and Google login |
+| `/register` | User registration |
+| `/add-book` | Add a book |
+| `/my-books` | Manage contributed books |
+| `/my-borrows` | View borrowing history and return books |
+
+Book creation, management, borrowing, and returning require authentication.
+
+## Backend API Endpoints
+
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| GET | `/books` | Retrieve all books |
+| GET | `/books/:id` | Retrieve a single book |
+| POST | `/books` | Add a new book |
+| PATCH | `/books/:id` | Update an owned book |
+| DELETE | `/books/:id` | Delete an owned book |
+| POST | `/borrows` | Borrow a book |
+| GET | `/borrows` | Retrieve the current user's borrowing records |
+| DELETE | `/borrows/:id` | Return a borrowed book |
+
+Protected endpoints require a valid JWT.
+
+## Run Locally
+
+### 1. Clone the repositories
+
+Frontend:
+
+    git clone https://github.com/ariful-arif124/booknook-client.git
+    cd booknook-client
+    npm install
+
+Backend:
+
+    git clone https://github.com/ariful-arif124/booknook-server.git
+    cd booknook-server
+    npm install
+
+### 2. Configure environment variables
+
+Create a `.env.local` file in the frontend project:
+
+    MONGODB_URI=
+    BETTER_AUTH_SECRET=
+    BETTER_AUTH_URL=http://localhost:3000
+    GOOGLE_CLIENT_ID=
+    GOOGLE_CLIENT_SECRET=
+    IMGBB_API_KEY=
+    BOOKNOOK_API_URL=http://localhost:5000
+    NEXT_PUBLIC_BOOKNOOK_API_URL=http://localhost:5000
+
+Create a `.env` file in the backend project:
+
+    PORT=5000
+    MONGODB_URI=
+    AUTH_BASE_URL=http://localhost:3000
+    CLIENT_URL=http://localhost:3000
+
+Provide your own credentials for MongoDB Atlas, Better Auth, Google OAuth, and ImgBB.
+
+Never commit `.env` or `.env.local` files to GitHub.
+
+### 3. Start the backend
+
+From the backend directory:
+
+    node index.js
+
+The backend runs at http://localhost:5000.
+
+### 4. Start the frontend
+
+From the frontend directory:
+
+    npm run dev
+
+Open http://localhost:3000 in your browser.
+
+## Security and Borrowing Rules
+
+- Private API operations require JWT authentication.
+- Users can only edit and delete books they own.
+- Users can only access and return their own borrowing records.
+- Borrowing reduces available copies by one.
+- Returning restores one available copy.
+- Books cannot be borrowed when no copies are available.
+- Duplicate active borrowing is prevented.
+- Books with outstanding loans cannot be deleted.
+
+## Deployment
+
+The frontend is deployed on Vercel, and the Express backend is deployed on Render.
+
+Production credentials and URLs are managed through the hosting platforms' environment variable settings.
+
+## Project Purpose
+
+BookNook was developed as a full-stack web development assignment demonstrating frontend development, secure authentication, REST API integration, MongoDB CRUD operations, and real-world deployment.
+
+## License
+
+This project was developed for educational purposes.
