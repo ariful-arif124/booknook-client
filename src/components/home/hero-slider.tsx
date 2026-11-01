@@ -23,6 +23,7 @@ const slides = [
       "Discover extraordinary books, explore fresh perspectives, and uncover stories worth sharing. Your next literary adventure starts here.",
     background: "#F8FAF7",
     decoration: "#E3E9E0",
+    image: "/images/night-circus.jpg",
   },
   {
     bookId: "9",
@@ -32,6 +33,7 @@ const slides = [
       "Step into a world of imagination, endless possibilities, and unforgettable characters. A beautiful story is always waiting.",
     background: "#F5F5F0",
     decoration: "#DEE4EA",
+    image: null,
   },
   {
     bookId: "8",
@@ -41,6 +43,7 @@ const slides = [
       "Travel beyond the ordinary. Discover timeless tales filled with imagination, wisdom, friendship, and unforgettable moments.",
     background: "#FBF7F1",
     decoration: "#E9DFCE",
+    image: null,
   },
 ];
 
@@ -62,9 +65,9 @@ export default function HeroSlider() {
             disableOnInteraction: false,
             pauseOnMouseEnter: true,
           }}
-          onSlideChange={(swiper) =>
-            setActiveSlide(swiper.realIndex + 1)
-          }
+          onSlideChange={(swiper) => {
+            setActiveSlide(swiper.realIndex + 1);
+          }}
           className="w-full"
         >
           {slides.map((slide, index) => {
@@ -74,11 +77,15 @@ export default function HeroSlider() {
 
             if (!book) return null;
 
+            const imageSrc = slide.image || book.image;
+
             return (
               <SwiperSlide key={slide.bookId}>
                 <div
                   className="grid min-h-[620px] items-center gap-12 px-6 py-16 lg:grid-cols-2 lg:px-12"
-                  style={{ backgroundColor: slide.background }}
+                  style={{
+                    backgroundColor: slide.background,
+                  }}
                 >
                   <div className="relative z-10 max-w-xl">
                     <div className="mb-7 inline-flex items-center gap-2 rounded-full bg-[#EFECE7] px-4 py-2">
@@ -118,6 +125,7 @@ export default function HeroSlider() {
                           size={18}
                           className="text-[#A34D32]"
                         />
+
                         How It Works
                       </Link>
                     </div>
@@ -177,19 +185,19 @@ export default function HeroSlider() {
                         </div>
                       ) : (
                         <Image
-                          src={book.image}
+                          src={imageSrc}
                           alt={`${book.title} by ${book.author}`}
                           fill
                           priority={index === 0}
                           sizes="(max-width: 640px) 245px, 295px"
                           className="object-contain"
-                          onError={() =>
+                          onError={() => {
                             setFailedImages((current) =>
                               current.includes(book.id)
                                 ? current
                                 : [...current, book.id]
-                            )
-                          }
+                            );
+                          }}
                         />
                       )}
                     </div>
@@ -222,8 +230,12 @@ export default function HeroSlider() {
         </Swiper>
 
         <div className="pointer-events-none absolute bottom-7 left-6 z-10 flex items-center gap-2 text-xs font-semibold text-[#07352C] lg:left-12">
-          <span>{String(activeSlide).padStart(2, "0")}</span>
+          <span>
+            {String(activeSlide).padStart(2, "0")}
+          </span>
+
           <span className="text-[#A9B9AF]">/</span>
+
           <span className="text-[#87988C]">
             {String(slides.length).padStart(2, "0")}
           </span>
